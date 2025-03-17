@@ -1,34 +1,50 @@
 const TelegramBot = require('node-telegram-bot-api');
+const ytdl = require('ytdl-core');
+const fs = require('fs');
+const { exec } = require('child_process');
 
-const token = '8189923091:AAHKPu74zG00PtxRkZgM0DVoj3M9f-XcN9Q';  // Replace with your actual token
+const token = process.env.TOKEN;  // Make sure your token is in Railway variables
 const bot = new TelegramBot(token, { polling: true });
 
 bot.onText(/\/start/, (msg) => {
-    const chatId = msg.chat.id;
-    bot.sendMessage(chatId, `Welcome, ${msg.from.first_name}! 🤖 I'm Abdurrahman Sudais Jr. How may I help you? Type /menu to see my command list.`);
+    bot.sendMessage(msg.chat.id, `🎵 Welcome, ${msg.from.first_name}! Type /play <song name or link> to play music.`);
 });
 
-// Adding the /menu command
-bot.onText(/\/menu/, (msg) => {
+bot.onText(/\/play (.+)/, async (msg, match) => {
     const chatId = msg.chat.id;
-    const menuText = `📜 *Menu Commands* 📜\n\n` +
-                     `🔹 /start - Start the bot\n` +
-                     `🔹 /menu - Show this menu\n` +
-                     `🔹 /help - Get help\n` +
-                     `🔹 /play [music] - Play music 🎵\n` +
-                     `🔹 /pause - Pause the music ⏸️\n\n` +
-                     `More features coming soon! 🚀`;
+    const query = match[1];
 
-    bot.sendMessage(chatId, menuText, { parse_mode: "Markdown" });
-});
+    try {
+        bot.sendMessage(chatId, `🔎 Searching for "${query}"...`);
 
-bot.on('message', (msg) => {
-    const chatId = msg.chat.id;
-    
-    // Ignore commands so they don't trigger the normal message response
-    if (msg.text.startsWith('/')) return;
+        // If the query is a direct YouTube URL, use it. Otherwise, search for the first result.
+        let videoUrl = query;
+        if (!query.includes("youtube.com") && !query.includes("youtu.be")) {
+            const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
+            const res = await fetch(searchUrl);
+            const body = await res.text();
+            const videoId = body.match(/"videoId":"(.*?)"/)[1];
+            videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+        }
 
-    bot.sendMessage(chatId, `You said: "${msg.text}"`);
+        bot.sendMessage(chatId, `🎶 Playing: ${videoUrl}`);
+
+        // Download the audio
+        const stream = ytdl(videoUrl, { filter: 'audioonly' });
+        const filePath = `music_${chatId}.mp3`;
+        const writeStream = fs.createWriteStream(filePath);
+
+        stream.pipe(writeStream);
+        writeStream.on('finish', () => {
+            bot.sendAudio(chatId, filePath).then(() => {
+                fs.unlinkSync(filePath); // Delete the file after sending
+            });
+        });
+
+    } catch (error) {
+        bot.sendMessage(chatId, `❌ Error: Could not find the song.`);
+        console.error(error);
+    }
 });
 
 console.log("Bot is running...");
