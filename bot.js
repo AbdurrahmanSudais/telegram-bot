@@ -2,14 +2,28 @@ const TelegramBot = require('node-telegram-bot-api');
 const ytdl = require('ytdl-core');
 const fs = require('fs');
 const { exec } = require('child_process');
+const fetch = require('node-fetch'); // For searching YouTube
 
-const token = process.env.TOKEN;  // Make sure your token is in Railway variables
+// Use environment variable for the bot token
+const token = process.env.TOKEN;
 const bot = new TelegramBot(token, { polling: true });
 
+// /start command
 bot.onText(/\/start/, (msg) => {
-    bot.sendMessage(msg.chat.id, `🎵 Welcome, ${msg.from.first_name}! Type /play <song name or link> to play music.`);
+    bot.sendMessage(msg.chat.id, `🎵 Welcome, ${msg.from.first_name}!  
+I am Abdurrahman Sudais Jr 🤖  
+Type /menu to see available commands.`);
 });
 
+// /menu command
+bot.onText(/\/menu/, (msg) => {
+    bot.sendMessage(msg.chat.id, `📜 Available Commands:  
+/start - Start the bot  
+/menu - Show this menu  
+/play <song name or link> - Play a song`);
+});
+
+// /play command
 bot.onText(/\/play (.+)/, async (msg, match) => {
     const chatId = msg.chat.id;
     const query = match[1];
@@ -17,7 +31,7 @@ bot.onText(/\/play (.+)/, async (msg, match) => {
     try {
         bot.sendMessage(chatId, `🔎 Searching for "${query}"...`);
 
-        // If the query is a direct YouTube URL, use it. Otherwise, search for the first result.
+        // If the user provides a YouTube link, use it. Otherwise, search for the first result.
         let videoUrl = query;
         if (!query.includes("youtube.com") && !query.includes("youtu.be")) {
             const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
@@ -37,7 +51,7 @@ bot.onText(/\/play (.+)/, async (msg, match) => {
         stream.pipe(writeStream);
         writeStream.on('finish', () => {
             bot.sendAudio(chatId, filePath).then(() => {
-                fs.unlinkSync(filePath); // Delete the file after sending
+                fs.unlinkSync(filePath); // Delete file after sending
             });
         });
 
