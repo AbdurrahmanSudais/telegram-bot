@@ -5,7 +5,7 @@ const { exec } = require('child_process');
 const fetch = require('node-fetch'); // For searching YouTube
 
 // Use environment variable for the bot token
-const token = process.env.TOKEN;
+const token = '8189923091:AAHKPu74zG00PtxRkZgM0DVoj3M9f-XcN9Q';
 const bot = new TelegramBot(token, { polling: true });
 
 // /start command
