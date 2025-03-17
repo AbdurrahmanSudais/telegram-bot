@@ -22,11 +22,9 @@ bot.onText(/\/menu/, (msg) => {
     const menuText = `
 📜 *Menu Commands* 📜
 
-🔹 \`/start\` - Start the bot  
-🔹 \`/menu\` - Show this menu  
-🔹 \`/help\` - Get help  
-🔹 \`/play [music]\` - Play music 🎵  
-🔹 \`/pause\` - Pause the music ⏸️  
+🔹 /start- Start the bot  
+🔹 /menu- Show this menu  
+🔹 /help- Get help  
 
 _More features coming soon! 🚀_`;
 
