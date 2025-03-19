@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
 
-const token = '8189923091:AAHKPu74zG00PtxRkZgM0DVoj3M9f-XcN9Q';
+const token = process.env.BOT_TOKEN;
 if (!token) {
     console.error("Error: BOT_TOKEN is missing. Please add your bot token in the .env file.");
     process.exit(1);
@@ -62,22 +62,23 @@ bot.onText(/\/play (.+)/, async (msg, match) => {
 
         // Download and convert to MP3 using ytdl-core and FFmpeg
         const stream = ytdl(videoUrl, { filter: 'audioonly' });
-        const ffmpeg = exec(`ffmpeg -i pipe:0 -b:a 192K -vn "${filePath}"`);
+        const ffmpegProcess = exec(`ffmpeg -i pipe:0 -b:a 192K -vn "${filePath}"`, { stdio: ['pipe', 'ignore', 'ignore'] });
 
-        stream.pipe(ffmpeg.stdin);
+        stream.pipe(ffmpegProcess.stdin);
 
-        ffmpeg.on('close', async () => {
-            // Ensure the file exists before sending
-            if (fs.existsSync(filePath)) {
-                await bot.sendAudio(chatId, fs.createReadStream(filePath), {
-                    title: video.title,
-                    performer: video.author.name
-                });
+        ffmpegProcess.on('close', async () => {
+            setTimeout(async () => {  // Give FFmpeg time to finish writing the file
+                if (fs.existsSync(filePath)) {
+                    await bot.sendAudio(chatId, fs.createReadStream(filePath), {
+                        title: video.title,
+                        performer: video.author.name
+                    });
 
-                fs.unlinkSync(filePath); // Delete the file after sending
-            } else {
-                bot.sendMessage(chatId, "❌ Error: File not found after download.");
-            }
+                    fs.unlinkSync(filePath); // Delete the file after sending
+                } else {
+                    bot.sendMessage(chatId, "❌ Error: File not found after download. Please try again.");
+                }
+            }, 3000); // 3 seconds delay
         });
 
     } catch (error) {
