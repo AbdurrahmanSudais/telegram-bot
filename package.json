@@ -1,16 +1,24 @@
 {
-  "name": "telegram-bot",
+  "name": "telegram-music-bot",
   "version": "1.0.0",
-  "description": "A Telegram bot that plays audio files",
+  "description": "A Telegram bot that searches, downloads, and plays music using YouTube.",
   "main": "bot.js",
   "scripts": {
     "start": "node bot.js"
   },
   "dependencies": {
     "dotenv": "^16.0.3",
+    "node-telegram-bot-api": "^0.61.0",
+    "ytdl-core": "^4.11.5",
+    "yt-search": "^2.10.8",
     "fs": "0.0.1-security",
-    "node-telegram-bot-api": "^0.61.0"
+    "path": "^0.12.7",
+    "child_process": "^1.0.2"
   },
-  "author": "Abdurrahman Sudais",
+  "engines": {
+    "node": ">=14"
+  },
+  "keywords": ["telegram", "bot", "music", "youtube", "mp3"],
+  "author": "Abdurrahman Sudais Jr",
   "license": "MIT"
 }
