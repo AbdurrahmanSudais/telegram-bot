@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
 
-const token = process.env.BOT_TOKEN;
+const token = '8189923091:AAHKPu74zG00PtxRkZgM0DVoj3M9f-XcN9Q';
 if (!token) {
     console.error("Error: BOT_TOKEN is missing. Please add your bot token in the .env file.");
     process.exit(1);
