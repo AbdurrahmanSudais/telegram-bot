@@ -8,7 +8,7 @@ const { exec } = require('child_process');
 
 const token = '8189923091:AAHKPu74zG00PtxRkZgM0DVoj3M9f-XcN9Q';
 if (!token) {
-    console.error("Error: BOT_TOKEN is missing. Please add your bot token.");
+    console.error("Error: BOT_TOKEN is missing. Please add your bot token in the .env file.");
     process.exit(1);
 }
 
@@ -18,7 +18,7 @@ console.log("🤖 Bot is running...");
 
 // Handle /start command
 bot.onText(/\/start/, (msg) => {
-    bot.sendMessage(msg.chat.id, `Welcome, ${msg.from.first_name}! 🤖\nI'm Abdurrahman Sudais Jr. How may I help you? Type /menu to see my command list.`);
+    bot.sendMessage(msg.chat.id, `Welcome, ${msg.from.first_name}! 🤖\nI'm a music bot. Type /menu to see available commands.`);
 });
 
 // Handle /menu command
@@ -56,24 +56,30 @@ bot.onText(/\/play (.+)/, async (msg, match) => {
         const video = searchResults.videos[0]; // Get the first video
         const videoUrl = video.url;
         const title = video.title.replace(/[^\w\s]/gi, ''); // Remove special characters
-        const filePath = `./${title}.mp3`;
+        const filePath = path.join(__dirname, `${title}.mp3`);
 
         bot.sendMessage(chatId, `🎵 Downloading *${video.title}*...`, { parse_mode: "Markdown" });
 
         // Download and convert to MP3 using ytdl-core and FFmpeg
         const stream = ytdl(videoUrl, { filter: 'audioonly' });
-        const process = exec(`ffmpeg -i pipe:0 -b:a 192K -vn "${filePath}"`, { stdio: ['pipe', 'ignore', 'ignore'] });
+        const ffmpeg = exec(`ffmpeg -i pipe:0 -b:a 192K -vn "${filePath}"`);
 
-        stream.pipe(process.stdin);
+        stream.pipe(ffmpeg.stdin);
 
-        process.on('close', async () => {
-            bot.sendAudio(chatId, fs.createReadStream(filePath), {
-                title: video.title,
-                performer: video.author.name
-            }).then(() => {
+        ffmpeg.on('close', async () => {
+            // Ensure the file exists before sending
+            if (fs.existsSync(filePath)) {
+                await bot.sendAudio(chatId, fs.createReadStream(filePath), {
+                    title: video.title,
+                    performer: video.author.name
+                });
+
                 fs.unlinkSync(filePath); // Delete the file after sending
-            }).catch(err => console.error("Error sending audio:", err));
+            } else {
+                bot.sendMessage(chatId, "❌ Error: File not found after download.");
+            }
         });
+
     } catch (error) {
         console.error("Error:", error);
         bot.sendMessage(chatId, "❌ An error occurred while processing your request.");
