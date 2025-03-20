@@ -6,9 +6,9 @@ const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
 
-const token = '8189923091:AAHKPu74zG00PtxRkZgM0DVoj3M9f-XcN9Q';
+const token = process.env.BOT_TOKEN;
 if (!token) {
-    console.error("Error: BOT_TOKEN is missing. Please add your bot token in the .env file.");
+    console.error("❌ Error: BOT_TOKEN is missing in the .env file.");
     process.exit(1);
 }
 
@@ -18,7 +18,7 @@ console.log("🤖 Bot is running...");
 
 // Handle /start command
 bot.onText(/\/start/, (msg) => {
-    bot.sendMessage(msg.chat.id, `Welcome, ${msg.from.first_name}! 🤖\nI'm a music bot. Type /menu to see available commands.`);
+    bot.sendMessage(msg.chat.id, `Welcome, ${msg.from.first_name}! 🤖\nI'm a Abdurrahman Sudais Jr bot. Type /menu to see available commands.`);
 });
 
 // Handle /menu command
@@ -82,7 +82,7 @@ bot.onText(/\/play (.+)/, async (msg, match) => {
         });
 
     } catch (error) {
-        console.error("Error:", error);
+        console.error("❌ Error:", error);
         bot.sendMessage(chatId, "❌ An error occurred while processing your request.");
     }
 });
